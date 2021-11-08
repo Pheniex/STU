@@ -10,7 +10,7 @@ void ASTULauncherWeapon::StartFire()
 
 void ASTULauncherWeapon::MakeShot()
 {
-    if (!GetWorld())
+    if (!GetWorld() || IsAmmoEmpty())
     {
         return;
     }
@@ -36,4 +36,6 @@ void ASTULauncherWeapon::MakeShot()
         Projectile->SetOwner(GetOwner());
         Projectile->FinishSpawning(SpawnTransform);
     }
+
+    DecreaseAmmo();
 }
