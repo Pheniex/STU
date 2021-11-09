@@ -1,11 +1,10 @@
 // Shoot Them Up Game, by Pheniex
 
-
 #include "UI/STUPlayerHUDWidget.h"
 #include "Components/STUHealthComponent.h"
 #include "Components/STUWeaponComponent.h"
 
-float USTUPlayerHUDWidget::GetHealthPercent() const 
+float USTUPlayerHUDWidget::GetHealthPercent() const
 {
     const auto Player = GetOwningPlayerPawn();
     if (!Player)
@@ -23,20 +22,35 @@ float USTUPlayerHUDWidget::GetHealthPercent() const
     return HealthComponent->GetHealthPercent();
 }
 
-bool USTUPlayerHUDWidget::GetWeaponUIData(FWeaponUIData& UIData) const 
+bool USTUPlayerHUDWidget::GetCurrentWeaponUIData(FWeaponUIData& UIData) const
 {
-    const auto Player = GetOwningPlayerPawn();
-    if (!Player)
-    {
-        return false;
-    }
-
-    const auto Component = Player->GetComponentByClass(USTUWeaponComponent::StaticClass());
-    const auto WeaponComponent = Cast<USTUWeaponComponent>(Component);
+    const auto WeaponComponent = GetWeaponComponent();
     if (!WeaponComponent)
     {
         return false;
     }
 
-    return WeaponComponent->GetWeaponUIData(UIData);
+    return WeaponComponent->GetCurrentWeaponUIData(UIData);
+}
+
+bool USTUPlayerHUDWidget::GetCurrentWeaponAmmoData(FAmmoData& AmmoData) const
+{
+    const auto WeaponComponent = GetWeaponComponent();
+    if (!WeaponComponent)
+    {
+        return false;
+    }
+    return WeaponComponent->GetCurrentWeaponAmmoData(AmmoData);
+}
+USTUWeaponComponent* USTUPlayerHUDWidget::GetWeaponComponent() const
+{
+    const auto Player = GetOwningPlayerPawn();
+    if (!Player)
+    {
+        return nullptr;
+    }
+
+    const auto Component = Player->GetComponentByClass(USTUWeaponComponent::StaticClass());
+    const auto WeaponComponent = Cast<USTUWeaponComponent>(Component);
+    return WeaponComponent;
 }
