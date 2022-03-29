@@ -58,7 +58,7 @@ void USTUWeaponComponent::SpawnWeapons()
             continue;
         }
 
-        Weapon->OnClipEmpty.AddUObject(this, &USTUWeaponComponent::OnEmptyClip);
+        Weapon->OnClipEmpty.AddUObject(this, &USTUWeaponComponent::OnClipEmpty);
         Weapon->SetOwner(Character);
         Weapons.Add(Weapon);
 
@@ -217,9 +217,27 @@ void USTUWeaponComponent::Reload()
     ChangeClip();
 }
 
-void USTUWeaponComponent::OnEmptyClip()
+void USTUWeaponComponent::OnClipEmpty(ASTUBaseWeapon* AmmoEmptyWeapon)
 {
-    ChangeClip();
+    if (!AmmoEmptyWeapon)
+    {
+        return;
+    }
+
+    if (CurentWeapon == AmmoEmptyWeapon)
+    {
+        ChangeClip();
+    }
+    else
+    {
+        for (const auto Weapon : Weapons)
+        {
+            if (Weapon == AmmoEmptyWeapon)
+            {
+                Weapon->ChangeClip();
+            }
+        }
+    }
 }
 
 void USTUWeaponComponent::ChangeClip()
@@ -250,6 +268,18 @@ bool USTUWeaponComponent::GetCurrentWeaponAmmoData(FAmmoData& AmmoData) const
     {
         AmmoData = CurentWeapon->GetAmmoData();
         return true;
+    }
+    return false;
+}
+
+bool USTUWeaponComponent::TryToAddAmmo(TSubclassOf<ASTUBaseWeapon> WeaponType, int32 ClipsAmount)
+{
+    for (const auto Weapon : Weapons)
+    {
+        if (Weapon && Weapon->IsA(WeaponType))
+        {
+            return Weapon->TryToAddAmmo(ClipsAmount);
+        }
     }
     return false;
 }
