@@ -6,6 +6,8 @@
 #include "DrawDebugHelpers.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/Controller.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogBaseWeapon, All, All);
 
@@ -92,7 +94,8 @@ void ASTUBaseWeapon::MakeHit(FHitResult& HitResult, const FVector& TraceStart, c
     GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECollisionChannel::ECC_Visibility, CollisionParams);
 }
 
-void ASTUBaseWeapon::DecreaseAmmo() {
+void ASTUBaseWeapon::DecreaseAmmo()
+{
     if (CurrentAmmo.Bullets == 0)
     {
         UE_LOG(LogBaseWeapon, Warning, TEXT("Clip is empty"));
@@ -107,15 +110,18 @@ void ASTUBaseWeapon::DecreaseAmmo() {
     }
 }
 
-bool ASTUBaseWeapon::IsAmmoEmpty() const {
+bool ASTUBaseWeapon::IsAmmoEmpty() const
+{
     return !CurrentAmmo.Infinite && CurrentAmmo.Clips == 0 && IsClipEmpty();
 }
 
-bool ASTUBaseWeapon::IsClipEmpty() const {
+bool ASTUBaseWeapon::IsClipEmpty() const
+{
     return CurrentAmmo.Bullets == 0;
 }
 
-void ASTUBaseWeapon::ChangeClip() {
+void ASTUBaseWeapon::ChangeClip()
+{
     if (!CurrentAmmo.Infinite)
     {
         if (CurrentAmmo.Clips == 0)
@@ -129,25 +135,25 @@ void ASTUBaseWeapon::ChangeClip() {
     UE_LOG(LogBaseWeapon, Display, TEXT("-------Change Clip---------"));
 }
 
-bool ASTUBaseWeapon::CanReload() const 
+bool ASTUBaseWeapon::CanReload() const
 {
     return CurrentAmmo.Bullets < DefaultAmmo.Bullets && CurrentAmmo.Clips > 0;
 }
 
-void ASTUBaseWeapon::LogAmmo() 
+void ASTUBaseWeapon::LogAmmo()
 {
     FString AmmoInfo = "Ammo: " + FString::FromInt(CurrentAmmo.Bullets) + "/";
     AmmoInfo += CurrentAmmo.Infinite ? "Infinite" : FString::FromInt(CurrentAmmo.Clips);
     UE_LOG(LogBaseWeapon, Display, TEXT("%s"), *AmmoInfo);
 }
 
-bool ASTUBaseWeapon::IsAmmoFull() const 
+bool ASTUBaseWeapon::IsAmmoFull() const
 {
     return CurrentAmmo.Clips == DefaultAmmo.Clips && //
            CurrentAmmo.Bullets == DefaultAmmo.Bullets;
 }
 
-bool ASTUBaseWeapon::TryToAddAmmo(int32 ClipsAmount) 
+bool ASTUBaseWeapon::TryToAddAmmo(int32 ClipsAmount)
 {
     if (CurrentAmmo.Infinite || IsAmmoFull() || ClipsAmount <= 0)
     {
@@ -182,4 +188,15 @@ bool ASTUBaseWeapon::TryToAddAmmo(int32 ClipsAmount)
     }
 
     return true;
+}
+
+UNiagaraComponent* ASTUBaseWeapon::SpawnMuzzleFX()
+{
+    return UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleFX, //
+        WeaponMesh,                                               //
+        MuzzleSocketName,                                         //
+        FVector::ZeroVector,                                      //
+        FRotator::ZeroRotator,                                    //
+        EAttachLocation::SnapToTarget,                            //
+        true);
 }
