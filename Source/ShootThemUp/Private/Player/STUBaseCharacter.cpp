@@ -45,18 +45,19 @@ void ASTUBaseCharacter::BeginPlay()
     check(HealthComponent);
     check(HealthTextComponent);
     check(GetCharacterMovement());
+    check(GetMesh());
 
     OnHealthChanged(
-    HealthComponent->GetHealth()); //т.к. сначала вызываются BeginPlay компонентов и потом самого актора, поэтому, когда вызывается делегат
-                                   //OnHealthChanged в компоненте здоровья с параметром MaxHealth, функция в character еще не добавлена. поэтому в
-                                   //character вызываем функцию явно, с передачей параметра GetHealth(ДО обработки значений HealthComponent)
+    HealthComponent->GetHealth(), 0.0f);     //т.к. сначала вызываются BeginPlay компонентов и потом самого актора, поэтому, когда вызывается делегат
+                                             //OnHealthChanged в компоненте здоровья с параметром MaxHealth, функция в character еще не добавлена. поэтому в
+                                             //character вызываем функцию явно, с передачей параметра GetHealth(ДО обработки значений HealthComponent)
     HealthComponent->OnDeath.AddUObject(this, &ASTUBaseCharacter::OnDeath);
     HealthComponent->OnHealthChanged.AddUObject(this, &ASTUBaseCharacter::OnHealthChanged);
 
     LandedDelegate.AddDynamic(this, &ASTUBaseCharacter::OnGroundLanded);
 }
 
-void ASTUBaseCharacter::OnHealthChanged(float Health)
+void ASTUBaseCharacter::OnHealthChanged(float Health, float HealthDelta)
 {
     HealthTextComponent->SetText(FText::FromString(FString::Printf(TEXT("%.0f"), Health)));
 }
@@ -139,7 +140,7 @@ void ASTUBaseCharacter::OnDeath()
 {
     UE_LOG(BaseCharacterLog, Display, TEXT("Player %s is dead"), *GetName());
 
-    PlayAnimMontage(DeathAnimMontage);
+    // PlayAnimMontage(DeathAnimMontage);
     GetCharacterMovement()->DisableMovement();
     SetLifeSpan(LifeSpanOnDeath);
 
@@ -149,18 +150,23 @@ void ASTUBaseCharacter::OnDeath()
     }
     GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
     WeaponComponent->StopFire();
+
+    GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    GetMesh()->SetSimulatePhysics(true);
 }
 
 void ASTUBaseCharacter::OnGroundLanded(const FHitResult& Hit) {
     const auto FallVelocityZ = -GetVelocity().Z;
-    UE_LOG(BaseCharacterLog, Display, TEXT("On landed: %f"), FallVelocityZ);
+    //UE_LOG(BaseCharacterLog, Display, TEXT("On landed: %f"), FallVelocityZ);
 
     if (FallVelocityZ < LandedDamageVelocity.X)
     {
         return;
     }
 
-    const auto FinalDamage = FMath::GetMappedRangeValueClamped(LandedDamageVelocity, LandedDamage, FallVelocityZ);
-    UE_LOG(BaseCharacterLog, Display, TEXT("FinalDamage: %f"), FinalDamage);
-    TakeDamage(FinalDamage, FDamageEvent{}, nullptr, nullptr);
+    const auto FallDamage = FMath::GetMappedRangeValueClamped(LandedDamageVelocity, LandedDamage, FallVelocityZ);
+    //UE_LOG(BaseCharacterLog, Display, TEXT("FallDamage: %f"), FallDamage);
+    TakeDamage(FallDamage, FDamageEvent{}, nullptr, nullptr);
+
+    UE_LOG(BaseCharacterLog, Display, TEXT("Player %s recived landed damage: %f"), *GetName(), FallDamage);
 }

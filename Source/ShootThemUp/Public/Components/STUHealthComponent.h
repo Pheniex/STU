@@ -7,6 +7,7 @@
 #include "STUCoreTypes.h"
 #include "STUHealthComponent.generated.h"
 
+
     UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent)) class SHOOTTHEMUP_API USTUHealthComponent : public UActorComponent
 {
     GENERATED_BODY()
@@ -20,7 +21,13 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Health")
     bool IsDead() const { return FMath::IsNearlyZero(Health); }
 
+    UFUNCTION(BlueprintCallable, Category = "Health")
+    float GetHealthPercent() const { return Health / MaxHealth; }
+
     float GetHealth() const { return Health; }
+
+    bool TryToAddHealth(float HealthAmount);
+    bool IsHealthFull() const;
 
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Health", meta = (ClampMin = "0", ClampMax = "1000.0"))
@@ -38,6 +45,9 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Heal", meta = (EditCondition = "AutoHeal"))
     float HealModifier = 5.0f;
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VFX")
+    TSubclassOf<UCameraShakeBase> CameraShake;
+
     // Called when the game starts
     virtual void BeginPlay() override;
 
@@ -51,4 +61,6 @@ private:
 
     void HealUpdate();
     void SetHealth(float NewHealth);
+
+    void PlayCameraShake();
 };

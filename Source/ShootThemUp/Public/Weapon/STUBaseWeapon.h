@@ -8,6 +8,8 @@
 #include "STUBaseWeapon.generated.h"
 
 class USkeletalMeshComponent;
+class UNiagaraSystem;
+class UNiagaraComponent;
 
 UCLASS()
 class SHOOTTHEMUP_API ASTUBaseWeapon : public AActor
@@ -25,6 +27,11 @@ public:
     void ChangeClip();
     bool CanReload() const;
 
+    FWeaponUIData GetUIData() const { return UIData; }
+    FAmmoData GetAmmoData() const { return CurrentAmmo; }
+
+    bool TryToAddAmmo(int32 ClipsAmount);
+
 protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
     USkeletalMeshComponent* WeaponMesh;
@@ -37,6 +44,12 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
     FAmmoData DefaultAmmo{15, 10, false};
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+    FWeaponUIData UIData;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VFX")
+    UNiagaraSystem* MuzzleFX;
 
     virtual void BeginPlay() override;
 
@@ -52,7 +65,11 @@ protected:
     void DecreaseAmmo();
     bool IsAmmoEmpty() const;
     bool IsClipEmpty() const;
+    bool IsAmmoFull() const;
+
     void LogAmmo();
+
+    UNiagaraComponent* SpawnMuzzleFX();
 
 private:
     FAmmoData CurrentAmmo;
