@@ -31,5 +31,18 @@ protected:
     FGameData GameData;
 
 private:
+    int32 CurrentRound = 1;
+    int32 RoundCountDown = 0;
+    FTimerHandle GameRoundTimerHandle;
+
     void SpawnBots();
+    void StartRound();
+    void GameTimerUpate();
+
+    void ResetPlayers();
+    void ResetOnePlayer(AController* Controller);
+
+    void CreateTeamsInfo();
+    FLinearColor DetermineColorByTeamID(int32 TeamID);
+    void SetPlayerColor(AController* Controller);
 };
