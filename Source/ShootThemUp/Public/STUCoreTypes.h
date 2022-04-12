@@ -85,6 +85,7 @@ struct FImpactData
     FDecalData DecalData;
 };
 
+// Game
 USTRUCT(BlueprintType)
 struct FGameData
 {
@@ -104,4 +105,7 @@ struct FGameData
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
     TArray<FLinearColor> TeamColors;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Game", meta = (ClampMin = "3", ClampMax = "20"))
+    int32 RespawnTime = 5; // in seconds
 };
